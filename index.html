@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holenaarsipura TMC - Problem Reporting</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        /* Golden Ratio CSS Grid Layout (1:1.618) */
+        /* φ (phi) = 1.61803398875 - Primary column proportions */
+        :root {
+            --phi: 1.618;
+            --phi-inverse: calc(1 / var(--phi));
+            --fib-1: 1px; --fib-2: 1px; --fib-3: 2px; --fib-5: 3px; 
+            --fib-8: 5px; --fib-13: 8px; --fib-21: 13px; --fib-34: 21px;
+            --fib-55: 34px; --fib-89: 55px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .grid-container {
+            /* CSS Grid with Golden Ratio proportions */
+            /* Main axis: 1 : φ : 1 (total ~3.618 parts) */
+            display: grid;
+            grid-template-columns: 1fr calc(var(--phi) * 1fr) 1fr;
+            grid-template-rows: auto 1fr auto;
+            grid-template-areas: 
+                "header header header"
+                "sidebar main main"
+                "footer footer footer";
+            min-height: 100vh;
+            gap: var(--fib-21) var(--fib-34);
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--fib-34) var(--fib-21);
+        }
+
+        /* Header - spans full width */
+        header {
+            grid-area: header;
+            background: white;
+            padding: var(--fib-34) var(--fib-55);
+            border-radius: var(--fib-13);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        /* Main content area - φ proportion wider */
+        main {
+            grid-area: main;
+            background: white;
+            padding: var(--fib-55);
+            border-radius: var(--fib-13);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* Sidebar - narrower (1:φ ratio to main) */
+        aside {
+            grid-area: sidebar;
+            background: white;
+            padding: var(--fib-34);
+            border-radius: var(--fib-13);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: var(--fib-21);
+        }
+
+        footer {
+            grid-area: footer;
+            background: #2c3e50;
+            color: white;
+            padding: var(--fib-34);
+            border-radius: var(--fib-13);
+            text-align: center;
+        }
+
+        /* Typography with Fibonacci spacing */
+        h1 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: var(--fib-13); color: #2c3e50; }
+        h2 { font-size: 1.5rem; margin-bottom: var(--fib-8); color: #34495e; }
+        h3 { font-size: 1.25rem; margin-bottom: var(--fib-5); color: #2c3e50; }
+
+        /* Form styling with Fibonacci padding */
+        .form-group {
+            margin-bottom: var(--fib-21);
+        }
+
+        label {
+            display: block;
+            margin-bottom: var(--fib-8);
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: var(--fib-13);
+            border: 2px solid #e1e8ed;
+            border-radius: var(--fib-8);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-upload-label {
+            display: block;
+            padding: var(--fib-13);
+            background: #3498db;
+            color: white;
+            text-align: center;
+            border-radius: var(--fib-8);
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .file-upload-label:hover {
+            background: #2980b9;
+        }
+
+        .file-list {
+            margin-top: var(--fib-13);
+            padding: var(--fib-13);
+            background: #f8f9fa;
+            border-radius: var(--fib-8);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--fib-5) 0;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        button {
+            background: #27ae60;
+            color: white;
+            padding: var(--fib-21) var(--fib-34);
+            border: none;
+            border-radius: var(--fib-8);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        button:hover:not(:disabled) {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: var(--fib-21);
+            border-radius: var(--fib-8);
+            margin: var(--fib-21) 0;
+            font-weight: 500;
+        }
+
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        /* QR Code styling */
+        .qr-container {
+            text-align: center;
+            padding: var(--fib-34);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: var(--fib-13);
+            color: white;
+        }
+
+        #qrcode {
+            margin: var(--fib-21) auto;
+            padding: var(--fib-13);
+            background: white;
+            border-radius: var(--fib-8);
+        }
+
+        /* Contact info cards */
+        .contact-card {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            padding: var(--fib-21);
+            border-radius: var(--fib-13);
+            text-decoration: none;
+            display: block;
+            margin-bottom: var(--fib-13);
+            transition: transform 0.3s ease;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+                grid-template-areas: 
+                    "header"
+                    "main"
+                    "sidebar"
+                    "footer";
+                gap: var(--fib-13);
+                padding: var(--fib-21);
+            }
+            
+            main, aside {
+                padding: var(--fib-34);
+            }
+        }
+
+        /* Custom scrollbar */
+        .file-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .file-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .file-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-container">
+        <!-- Header Section - Updated for Holenarasipura TMC -->
+        <header>
+            <h1>🏛️ Holenarasipura TMC</h1>
+            <p style="font-size: 1.2rem; color: #666;">Report civic issues to Holenarasipura Town Municipal Council</p>
+        </header>
+
+        <!-- Main Content: Problem Reporting Form -->
+        <main>
+            <form id="problemForm" novalidate>
+                <div class="form-group">
+                    <label for="title">Problem Title * (ಸಮಸ್ಯೆಯ ಹೆಸರು)</label>
+                    <input type="text" id="title" name="title" required maxlength="100">
+                    <span class="error" id="titleError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category * (ವರ್ಗ)</label>
+                    <select id="category" name="category" required>
+                        <option value="">Select a category (ವಿಭಾಗ ಆಯ್ಕೆಮಾಡಿ)</option>
+                        <option value="roads">Roads & Drainage (ರಸ್ತೆಗಳು & ಡ್ರೈನೇಜ್)</option>
+                        <option value="waste">Waste Management (ಅಪಶಿಷ್ಟ ನಿರ್ವಹಣೆ)</option>
+                        <option value="water">Water Supply (ನೀರು ಸರಬರಾಜು)</option>
+                        <option value="lighting">Street Lighting (ರಸ್ತೆ ಬೆಳಕು)</option>
+                        <option value="sewerage">Sewerage (ಸೀವೇಜ್)</option>
+                        <option value="parks">Parks & Cleanliness (ಪಾರ್ಕ್ & ಸ್ವಚ್ಛತೆ)</option>
+                        <option value="animals">Stray Animals (ಬಿಟ್ಟಿ ಮೃಗಗಳು)</option>
+                        <option value="other">Other (ಇತರೆ)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Detailed Description * (ವಿವರಗಳು)</label>
+                    <textarea id="description" name="description" required maxlength="2000" 
+                        placeholder="Describe the problem in detail including exact location, when noticed, severity... 
+(ಸಮಸ್ಯೆಯನ್ನು ವಿವರವಾಗಿ ಬರೆಯಿರಿ - ಸ್ಥಳ, ಯಾವಾಗ ಗಮನಿಸಿದ್ದೀರಿ, ತೀವ್ರತೆ...)"></textarea>
+                    <span class="error" id="descError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Location/Ward No. (Optional) (ಸ್ಥಳ/ವಾರ್ಡ್ ಸಂಖ್ಯೆ)</label>
+                    <input type="text" id="location" name="location" maxlength="100" placeholder="Ward 5, Main Road near Temple...">
+                </div>
+
+                <div class="form-group">
+                    <label for="contactName">Your Name (Optional) (ನಿಮ್ಮ ಹೆಸರು)</label>
+                    <input type="text" id="contactName" name="contactName" maxlength="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="contactPhone">Phone Number (Optional) (ಫೋನ್ ಸಂಖ್ಯೆ)</label>
+                    <input type="tel" id="contactPhone" name="contactPhone" maxlength="15">
+                </div>
+
+                <div class="form-group">
+                    <label for="contactEmail">Email (Optional)</label>
+                    <input type="email" id="contactEmail" name="contactEmail">
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Photos/Videos (Max 5 files, 5MB each) (ಫೋಟೋಗಳು/ವೀಡಿಯೊಗಳು)</label>
+                    <div class="file-upload">
+                        <input type="file" id="images" name="images" accept="image/*,video/*" multiple>
+                        <label for="images" class="file-upload-label">📷 Choose Files (ದಾಖಲೆಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ)</label>
+                    </div>
+                    <div id="fileList" class="file-list"></div>
+                    <span class="error" id="fileError"></span>
+                </div>
+
+                <button type="submit" id="submitBtn" disabled>🚀 Submit Complaint (ಅರ್ಜಿ ಸಲ್ಲಿಸಿ)</button>
+                <div id="formMessage"></div>
+            </form>
+        </main>
+
+        <!-- Sidebar: Holenarasipura TMC Real Contacts -->
+        <aside>
+            <h2>📞 Holenarasipura TMC Office</h2>
+            
+            <a href="mailto:ka.holenarsipura.tmc@gmail.com?subject=Civic%20Complaint%20-%20Holenarasipura" class="contact-card">
+                <h3>✉️ Official Email</h3>
+                <p><strong>ka.holenarsipura.tmc@gmail.com</strong></p>
+            </a>
+
+            <div class="contact-card" style="background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);">
+                <h3>📍 TMC Office Address</h3>
+                <p>Town Municipal Council<br>Holenarasipura<br>Hassan District, Karnataka</p>
+            </div>
+
+            <div class="contact-card" style="background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);">
+                <h3>🕒 Office Hours</h3>
+                <p>Monday-Saturday<br>10:00 AM - 5:30 PM</p>
+            </div>
+
+            <div class="qr-container">
+                <h3>📱 Quick QR Access</h3>
+                <p>Scan anytime to report issues</p>
+                <div id="qrcode"></div>
+            </div>
+        </aside>
+
+        <!-- Footer -->
+        <footer>
+            <p>&copy; 2026 Holenarasipura Town Municipal Council | ka.holenarsipura.tmc@gmail.com<br>
+            Complaints processed within 48 hours | Bilingual support: English & Kannada</p>
+        </footer>
+    </div>
+
+    <script>
+        // Fibonacci Function - generates first 10 numbers for dynamic spacing
+        // F(0)=0, F(1)=1, F(n)=F(n-1)+F(n-2)
+        function generateFibonacci() {
+            const fib = [0, 1];
+            for (let i = 2; i < 10; i++) {
+                fib[i] = fib[i-1] + fib[i-2];
+            }
+            return fib.slice(1); // Return first 10 starting from F(1)=1
+        }
+
+        // Apply Fibonacci padding dynamically to key elements
+        function applyFibonacciSpacing() {
+            const fib = generateFibonacci(); // [1,1,2,3,5,8,13,21,34,55]
+            const elements = document.querySelectorAll('main, aside, header, .form-group');
+            
+            elements.forEach((el, index) => {
+                if (index < fib.length) {
+                    // Convert Fibonacci numbers to rem units (1rem=16px base)
+                    const paddingRem = (fib[index] / 16).toFixed(2);
+                    el.style.setProperty('--dynamic-padding', `${paddingRem}rem`);
+                }
+            });
+
+            console.log('✅ Fibonacci spacing applied:', fib);
+        }
+
+        // Initialize page on load
+        document.addEventListener('DOMContentLoaded', function() {
+            applyFibonacciSpacing();
+            generateQRCode();
+            initFormValidation();
+            setupFileUpload();
+        });
+
+        // Generate QR Code linking to current page
+        function generateQRCode() {
+            const currentUrl = window.location.href;
+            QRCode.toCanvas(document.getElementById('qrcode'), currentUrl, {
+                width: 200,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function (error) {
+                if (error) console.error('QR Code generation failed:', error);
+            });
+        }
+
+        // Email-ready form data formatter
+        function formatEmailBody(formData) {
+            const files = formData.getAll('images');
+            let emailBody = `
+🚨 CIVIC COMPLAINT - Holenarasipura TMC 🚨
+
+📋 PROBLEM DETAILS:
+• Title: ${formData.get('title') || 'N/A'}
+• Category: ${formData.get('category') || 'N/A'}
+• Location: ${formData.get('location') || 'N/A'}
+• Description: ${formData.get('description') || 'N/A'}
+
+👤 REPORTER INFO:
+• Name: ${formData.get('contactName') || 'Anonymous'}
+• Phone: ${formData.get('contactPhone') || 'N/A'}
+• Email: ${formData.get('contactEmail') || 'N/A'}
+
+📎 ATTACHMENTS: ${files.length > 0 ? `${files.length} files attached` : 'None'}
+
+---
+Submitted: ${new Date().toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})}
+Page: ${window.location.href}
+            `.trim();
+
+            return encodeURIComponent(emailBody);
+        }
+
+        // Comprehensive form validation
+        function initFormValidation() {
+            const form = document.getElementById('problemForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            form.addEventListener('input', validateForm);
+            form.addEventListener('change', validateForm);
+            form.addEventListener('submit', handleSubmit);
+
+            function validateForm() {
+                const title = document.getElementById('title').value.trim();
+                const category = document.getElementById('category').value;
+                const description = document.getElementById('description').value.trim();
+                const files = document.getElementById('images').files;
+
+                // Clear previous errors
+                clearErrors();
+
+                let isValid = true;
+
+                // Title validation (min 5 chars)
+                if (!title || title.length < 5) {
+                    showError('titleError', 'Title must be at least 5 characters (ಹೆಸರು ಕನಿಷ್ಠ 5 ಅಕ್ಷರಗಳು)');
+                    isValid = false;
+                }
+
+                // Category validation
+                if (!category) {
+                    showError('categoryError', 'Please select a category');
+                    isValid = false;
+                }
+
+                // Description validation (min 20 chars)
+                if (!description || description.length < 20) {
+                    showError('descError', 'Description must be at least 20 characters (ವಿವರ ಕನಿಷ್ಠ 20 ಅಕ್ಷರಗಳು)');
+                    isValid = false;
+                }
+
+                // File validation
+                if (files.length > 5) {
+                    showError('fileError', 'Maximum 5 files allowed (ಗರಿಷ್ಠ 5 ಫೈಲ್‌ಗಳು)');
+                    isValid = false;
+                } else {
+                    for (let file of files) {
+                        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                            showError('fileError', `File "${file.name}" too large (max 5MB) (ಗರಿಷ್ಠ 5MB)`);
+                            isValid = false;
+                            break;
+                        }
+                    }
+                }
+
+                submitBtn.disabled = !isValid;
+                return isValid;
+            }
+        }
+
+        function showError(elementId, message) {
+            const errorEl = document.getElementById(elementId);
+            if (errorEl) {
+                errorEl.textContent = message;
+            }
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error').forEach(el => el.textContent = '');
+        }
+
+        // File upload handling with preview list
+        function setupFileUpload() {
+            const fileInput = document.getElementById('images');
+            const fileList = document.getElementById('fileList');
+
+            fileInput.addEventListener('change', function() {
+                fileList.innerHTML = '';
+                const files = Array.from(this.files);
+
+                files.forEach((file, index) => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-item';
+                    fileItem.innerHTML = `
+                        <span title="${file.name}">${file.name.substring(0, 30)}${file.name.length > 30 ? '...' : ''} 
+                        (${(file.size / 1024 / 1024).toFixed(1)}MB)</span>
+                        <button type="button" onclick="removeFile(${index})" style="background:#e74c3c;padding:4px 8px;border:none;border-radius:4px;color:white;cursor:pointer;font-size:0.8rem;">×</button>
+                    `;
+                    fileList.appendChild(fileItem);
+                });
+
+                validateForm(); // Re-validate after file change
+            });
+        }
+
+        // Remove specific file from selection
+        window.removeFile = function(index) {
+            const fileInput = document.getElementById('images');
+            const dataTransfer = new DataTransfer();
+            
+            Array.from(fileInput.files).forEach((file, i) => {
+                if (i !== index) dataTransfer.items.add(file);
+            });
+            
+            fileInput.files = dataTransfer.files;
+            setupFileUpload(); // Refresh list
+        };
+
+        // Production email submission handler
+        async function handleSubmit(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) return;
+            
+            const formData = new FormData(e.target);
+            const messageDiv = document.getElementById('formMessage');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Disable button during submission
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                // Format professional email for TMC
+                const subject = encodeURIComponent(`🚨 Civic Complaint - ${formData.get('title')}`);
+                const body = formatEmailBody(formData);
+                const mailtoUrl = `mailto:ka.holenarsipura.tmc@gmail.com?subject=${subject}&body=${body}`;
+                
+                // Open user's email client with pre-filled data
+                window.open(mailtoUrl, '_blank');
+                
+                // Show success with reference number
+                const refNumber = 'TMC-HSP-' + Date.now().toString().slice(-6);
+                showMessage(`
+                    ✅ <strong>Complaint Submitted Successfully!</strong><br>
+                    <strong>Reference #: ${refNumber}</strong><br><br>
+                    Your email client has opened with the complaint.<br>
+                    Please send it to complete submission.<br>
+                    Save the reference number for follow-up.
+                `, 'success');
+                
+                // Reset form after 3 seconds
+                setTimeout(() => {
+                    e.target.reset();
+                    document.getElementById('fileList').innerHTML = '';
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '🚀 Submit Complaint (ಅರ್ಜಿ ಸಲ್ಲಿಸಿ)';
+                }, 3000);
+                
+            } catch (error) {
+                showMessage('❌ Submission failed. Please try again or visit TMC office directly.', 'error');
+                console.error('Form submission error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🚀 Submit Complaint (ಅರ್ಜಿ ಸಲ್ಲಿಸಿ)';
+            }
+        }
+
+        // Expose validateForm globally for file upload callback
+        window.validateForm = validateForm;
+    </script>
+</body>
+</html>
